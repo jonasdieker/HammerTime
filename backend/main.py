@@ -33,25 +33,25 @@ async def receive_user_prompt(prompt: dict):
 
 @app.post("/send_foreman_approval")
 async def send_foreman_approval(approval_data: dict):
-    """Handles foreman approval button click"""
+    """Handles foreman approval button click."""
     return {"status": "approved", "message": "Foreman approval recorded"}
 
 
 @app.get("/approval_list/foreman")
 async def get_foreman_approvals():
-    """Returns list of foreman-approved items"""
+    """Returns list of foreman-approved items to show in the UI for the procurement team."""
     return MOCK_PARTS
 
 
 @app.post("/procurement_approval")
 async def procurement_approval(approval_data: dict):
-    """Handles procurement team approval button click"""
+    """Handles procurement team approval button click."""
     return {"status": "approved", "message": "Procurement approval recorded"}
 
 
 @app.get("/approval_list/procurement")
 async def get_procurement_approvals():
-    """Returns list of procurement-approved items"""
+    """Returns list of procurement-approved items."""
     return MOCK_PARTS
 
 

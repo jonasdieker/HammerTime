@@ -89,5 +89,5 @@ def image_search_view():
     
     with summary_col:
         with st.container(border=True):
-            render_order_summary()
+            render_order_summary(key_prefix="image_search")
 

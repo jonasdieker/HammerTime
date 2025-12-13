@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from backend.utils.request_agent import process_procurement_request, clean_voice_transcript
-from backend.utils.request_agent import process_procurement_request
+from typing import List
+from backend.utils.request_agent import process_procurement_request, clean_voice_transcript, chat_procurement_request
 from backend.pdf_generator import generate_pdf_contract
 import csv
 import os
@@ -129,6 +129,25 @@ async def clean_voice_input(request: CleanVoiceRequest):
     """Refines raw voice text using Claude"""
     cleaned_text = clean_voice_transcript(request.text)
     return {"cleaned": cleaned_text}
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+
+@app.post("/chat_request")
+async def chat_request(request: ChatRequest):
+    """
+    Conversational chat endpoint for procurement requests.
+    AI will ask clarifying questions or return final recommendations.
+    """
+    messages = [{"role": m.role, "content": m.content} for m in request.messages]
+    result = chat_procurement_request(messages, c_materials_catalog)
+    return result
+
 
 if __name__ == "__main__":
     import uvicorn

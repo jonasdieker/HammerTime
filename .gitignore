@@ -1,2 +1,3 @@
 .venv/
-secrets.yaml  // this is where our api keys are stored
+secrets.yaml
+*egg-info/

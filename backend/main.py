@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from langchain_core.messages import HumanMessage
 
-app = FastAPI()
+from backend.schemas import ProcurementRequest
+from backend.app import app, graph
 
 # Mock data
 MOCK_PARTS = [
@@ -26,9 +27,17 @@ MOCK_PARTS = [
 
 
 @app.post("/receive_user_prompt")
-async def receive_user_prompt(prompt: dict):
+async def receive_user_prompt(req: ProcurementRequest):
     """Receives user prompt and returns list of parts with suppliers"""
-    return MOCK_PARTS
+    initial_state = {
+        "messages": [HumanMessage(content=req.query)]
+    }
+
+    final_state = graph.invoke(initial_state)
+
+    return {
+        "result": final_state["messages"][-1].content
+    }
 
 
 @app.post("/send_foreman_approval")

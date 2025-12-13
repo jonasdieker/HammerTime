@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import random
 from datetime import datetime
+import requests
 
 # --- 1. CONFIGURATION & STYLING ---
 st.set_page_config(page_title="Comstruct", layout="wide")
@@ -169,23 +170,102 @@ def foreman_view():
         with col2:
             search_trigger = st.button("Search", use_container_width=True)
 
-        if ai_query:
-            if "screw" in ai_query.lower() or "drywall" in ai_query.lower():
-                st.info("Recommendation: Standard items for Drywall installation found.")
-                
-                # Recommendation Card
-                with st.container():
-                    c1, c2, c3 = st.columns([3, 1, 1])
-                    with c1:
-                        st.markdown("**Screws TX20 4x40 (Box 500)**")
-                        st.caption("Supplier: Wurth | 32% less wastage")
-                    with c2:
-                        st.markdown("**€40.00**")
-                    with c3:
-                        if st.button("Add Rec.", key="rec_add", type="primary"):
-                            add_to_cart(PRODUCTS[0], 1)
-            else:
-                st.markdown("Displaying catalog results...")
+        response_data = None
+        if ai_query and search_trigger:
+            st.info(f"Searching for: {ai_query}")
+            try:
+                response = requests.post("http://localhost:8000/receive_user_prompt", json={"prompt": ai_query})
+                response.raise_for_status()
+                response_data = response.json()
+                print(f"API Response: {response_data}")
+
+                # Parse the new API response format
+                if response_data and "items" in response_data and "explanation" in response_data:
+                    import json
+                    
+                    # Display explanation
+                    st.success("✨ AI Recommendation")
+                    st.markdown(f"**{response_data['explanation']}**")
+                    
+                    st.divider()
+                    st.subheader("Recommended Materials")
+                    
+                    # Get items directly from response
+                    api_items = response_data["items"]
+                    
+                    # Create recommendations list - items already have all data from API
+                    recommendations = []
+                    for api_item in api_items:
+                        article_id = api_item.get("artikel_id")
+                        article_name = api_item.get("artikelname")
+                        count = api_item.get("anzahl")
+                        price = api_item.get("preis_stk")
+                        categorie = api_item.get("kategorie")
+                        supplier = api_item.get("lieferant")
+                                                
+                        recommendations.append({
+                            "product_id": article_id,
+                            "name": article_name,
+                            "recommended_qty": count,
+                            "subtotal": price * count,
+                            "category": categorie,
+                            "supplier": supplier
+                        })
+
+                    
+                    # Display recommendations
+                    if recommendations:
+                        # Add all button
+                        col_btn1, col_btn2 = st.columns([3, 1])
+                        with col_btn2:
+                            if st.button("Add All to Cart", type="primary", use_container_width=True):
+                                for rec in recommendations:
+                                    add_to_cart(rec, rec["recommended_qty"])
+                                st.success(f"Added {len(recommendations)} items to cart!")
+                                st.rerun()
+                        
+                        st.divider()
+                        
+                        # Display each recommendation
+                        for idx, rec in enumerate(recommendations):
+                            with st.container(border=True):
+                                c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
+                                with c1:
+                                    st.markdown(f"**{rec['name']}**")
+                                    st.caption(f"{rec['category']} | {rec['supplier']}")
+                                with c2:
+                                    st.markdown(f"**Qty: {rec['recommended_qty']}**")
+                                with c3:
+                                    st.markdown(f"€{rec['subtotal']:.2f}")
+                                with c4:
+                                    if st.button("Add", key=f"rec_{rec['product_id']}_{idx}", use_container_width=True):
+                                        # Add price field for add_to_cart
+                                        rec_with_price = {**rec, "id": rec['product_id'], "price": rec['subtotal'] / rec['recommended_qty']}
+                                        add_to_cart(rec_with_price, rec["recommended_qty"])
+                                        st.rerun()
+                        
+                        # Total estimate
+                        total_estimate = sum(r["subtotal"] for r in recommendations)
+                        st.divider()
+                        st.metric("Total Estimate", f"€{total_estimate:.2f}")
+                        
+                        # Show approval status
+                        if response_data.get("requireApproval", False):
+                            st.info("⚠️ This order will require approval (over budget threshold)")
+                    else:
+                        st.warning("No matching items found in catalog.")
+                else:
+                    st.error("Invalid response format from API - missing required fields.")
+                    
+            except requests.exceptions.RequestException as e:
+                st.error(f"API request failed: {str(e)}")
+            except json.JSONDecodeError as e:
+                st.error(f"Failed to parse JSON: {str(e)}")
+            except KeyError as e:
+                st.error(f"Missing expected field in response: {str(e)}")
+            except Exception as e:
+                st.error(f"Error processing request: {str(e)}")
+                print(f"Error details: {e}")
 
     st.divider()
 

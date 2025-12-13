@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
+from backend.utils.request_agent import process_procurement_request
+import csv
 
 app = FastAPI()
 
@@ -24,11 +27,45 @@ MOCK_PARTS = [
     }
 ]
 
+class PromptRequest(BaseModel):
+    prompt: str
+
+
+# data parsed once at startup
+def parse_data():
+    with open('backend/data/sample.csv', 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        c_materials = []
+        for row in reader:
+            # convert numeric fields
+            if row.get('preis_eur'):
+                try:
+                    row['preis_eur'] = float(row['preis_eur'])
+                except ValueError:
+                    pass
+
+            # normalize hazard flag if present (don't keep it)
+            g = row.get('gefahrgut', row.get('gefahrengut', '')).strip().lower()
+            _ = True if g in ('true', '1', 'yes') else False
+
+            # remove unwanted fields from the row
+            for _k in ('verbrauchsart', 'gefahrgut', 'gefahrengut', 'lagerort'):
+                row.pop(_k, None)
+
+            c_materials.append(row)
+    
+    return c_materials
+
+c_materials_catalog = parse_data()
+print(c_materials_catalog[:2])
+
 
 @app.post("/receive_user_prompt")
-async def receive_user_prompt(prompt: dict):
+async def receive_user_prompt(request: PromptRequest):
     """Receives user prompt and returns list of parts with suppliers"""
-    return MOCK_PARTS
+    suggested_materials = process_procurement_request(request.prompt, c_materials_catalog)
+    #TODO: validate IDs are legit
+    return suggested_materials
 
 
 @app.post("/send_foreman_approval")

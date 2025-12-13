@@ -177,15 +177,14 @@ def foreman_view():
                 response = requests.post("http://localhost:8000/receive_user_prompt", json={"prompt": ai_query})
                 response.raise_for_status()
                 response_data = response.json()
-                print(f"API Response: {response_data}")
+                # print(f"API Response: {response_data}")
 
                 # Parse the new API response format
                 if response_data and "items" in response_data and "explanation" in response_data:
                     import json
-                    
-                    # Display explanation
-                    st.success("✨ AI Recommendation")
-                    st.markdown(f"**{response_data['explanation']}**")
+
+                    st.session_state.explanation = response_data['explanation']
+                    st.session_state.requireApproval = response_data.get('requireApproval', False)
                     
                     st.divider()
                     st.subheader("Recommended Materials")
@@ -193,66 +192,17 @@ def foreman_view():
                     # Get items directly from response
                     api_items = response_data["items"]
                     
-                    # Create recommendations list - items already have all data from API
-                    recommendations = []
-                    for api_item in api_items:
-                        article_id = api_item.get("artikel_id")
-                        article_name = api_item.get("artikelname")
-                        count = api_item.get("anzahl")
-                        price = api_item.get("preis_stk")
-                        categorie = api_item.get("kategorie")
-                        supplier = api_item.get("lieferant")
-                                                
-                        recommendations.append({
-                            "product_id": article_id,
-                            "name": article_name,
-                            "recommended_qty": count,
-                            "subtotal": price * count,
-                            "category": categorie,
-                            "supplier": supplier
+                    # Store recommendations in session state
+                    st.session_state.recommendations = []
+                    for api_item in api_items:           
+                        st.session_state.recommendations.append({
+                            "product_id": api_item.get("artikel_id"),
+                            "name": api_item.get("artikelname"),
+                            "qty": api_item.get("anzahl"),
+                            "price": api_item.get("preis_stk"),
+                            "category": api_item.get("kategorie"),
+                            "supplier": api_item.get("lieferant")
                         })
-
-                    # Display recommendations
-                    if recommendations:
-                        # Add all button
-                        col_btn1, col_btn2 = st.columns([3, 1])
-                        with col_btn2:
-                            if st.button("Add All to Cart", type="primary", use_container_width=True):
-                                for rec in recommendations:
-                                    add_to_cart(rec, rec["recommended_qty"])
-                                st.success(f"Added {len(recommendations)} items to cart!")
-                                st.rerun()
-                        
-                        st.divider()
-                        
-                        # Display each recommendation
-                        for idx, rec in enumerate(recommendations):
-                            with st.container(border=True):
-                                c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
-                                with c1:
-                                    st.markdown(f"**{rec['name']}**")
-                                    st.caption(f"{rec['category']} | {rec['supplier']}")
-                                with c2:
-                                    st.markdown(f"**Qty: {rec['recommended_qty']}**")
-                                with c3:
-                                    st.markdown(f"€{rec['subtotal']:.2f}")
-                                with c4:
-                                    if st.button("Add", key=f"rec_{rec['product_id']}_{idx}", use_container_width=True):
-                                        # Add price field for add_to_cart
-                                        rec_with_price = {**rec, "id": rec['product_id'], "price": rec['subtotal'] / rec['recommended_qty']}
-                                        add_to_cart(rec_with_price, rec["recommended_qty"])
-                                        st.rerun()
-                        
-                        # Total estimate
-                        total_estimate = sum(r["subtotal"] for r in recommendations)
-                        st.divider()
-                        st.metric("Total Estimate", f"€{total_estimate:.2f}")
-                        
-                        # Show approval status
-                        if response_data.get("requireApproval", False):
-                            st.info("⚠️ This order will require approval (over budget threshold)")
-                    else:
-                        st.warning("No matching items found in catalog.")
                 else:
                     st.error("Invalid response format from API - missing required fields.")
                     
@@ -265,6 +215,73 @@ def foreman_view():
             except Exception as e:
                 st.error(f"Error processing request: {str(e)}")
                 print(f"Error details: {e}")
+        
+        # Display recommendations if they exist in session state (outside the search trigger block)
+        if 'recommendations' in st.session_state and st.session_state.recommendations:
+            # Display explanation
+            if 'explanation' in st.session_state:
+                st.success("✨ AI Recommendation")
+                st.markdown(f"**{st.session_state.explanation}**")
+            
+            st.divider()
+            st.subheader("Recommended Materials")
+            
+            recommendations = st.session_state.recommendations
+
+            # Display recommendations
+            if recommendations:
+                # Add all button
+                col_btn1, col_btn2 = st.columns([3, 1])
+                with col_btn2:
+                    if st.button("Add All to Cart", type="primary", use_container_width=True):
+                        for rec in recommendations:
+                            add_to_cart(rec, rec["qty"])
+                        st.success(f"Added {len(recommendations)} items to cart!")
+                        st.rerun()
+                
+                st.divider()
+                
+                # Display each recommendation
+                for idx, rec in enumerate(recommendations):
+                    subtotal = rec['price'] * rec['qty']
+                    
+                    with st.container(border=True):
+                        c1, c2, c3, c4 = st.columns([3, 2, 1, 1])
+                        with c1:
+                            st.markdown(f"**{rec['name']}**")
+                            st.caption(f"{rec['category']} | {rec['supplier']}")
+                        with c2:
+                            # Quantity controls with +/- buttons
+                            qty_col1, qty_col2, qty_col3 = st.columns([1, 2, 1])
+                            with qty_col1:
+                                if st.button("−", key=f"dec_{rec['product_id']}_{idx}", use_container_width=True):
+                                    if rec['qty'] > 1:
+                                        st.session_state.recommendations[idx]['qty'] -= 1
+                                        st.rerun()
+                            with qty_col2:
+                                st.markdown(f"<div style='text-align: center; padding-top: 5px;'><b>{rec['qty']}</b></div>", unsafe_allow_html=True)
+                            with qty_col3:
+                                if st.button("+", key=f"inc_{rec['product_id']}_{idx}", use_container_width=True):
+                                    st.session_state.recommendations[idx]['qty'] += 1
+                                    st.rerun()
+                        with c3:
+                            st.markdown(f"€{subtotal:.2f}")
+                        with c4:
+                            if st.button("Add", key=f"rec_{rec['product_id']}_{idx}", use_container_width=True):
+                                rec_with_id = {**rec, "id": rec['product_id']}
+                                add_to_cart(rec_with_id, rec['qty'])
+                                st.rerun()
+                
+                # Total estimate with updated quantities
+                total_estimate = sum(r['price'] * r['qty'] for r in recommendations)
+                st.divider()
+                st.metric("Total Estimate", f"€{total_estimate:.2f}")
+                
+                # Show approval status
+                if 'requireApproval' in st.session_state and st.session_state.requireApproval:
+                    st.info("⚠️ This order will require approval (over budget threshold)")
+            else:
+                st.warning("No matching items found in catalog.")
 
     st.divider()
 

@@ -321,16 +321,34 @@ if 'search_results' not in st.session_state:
     st.session_state.search_results = None
 if 'last_search_query' not in st.session_state:
     st.session_state.last_search_query = ""
+if 'cart_version' not in st.session_state:
+    st.session_state.cart_version = 0  # Used to reset number inputs after order
 
 # --- 4. HELPER FUNCTIONS ---
-def add_to_cart(product, qty):
+def add_to_cart(product, qty, add_mode=True):
+    """Add product to cart. If add_mode=True, adds qty to existing. If False, sets qty."""
     if qty > 0:
         # Check if product already in cart
         for item in st.session_state.cart:
             if item['id'] == product['id']:
-                item['qty'] += qty
+                if add_mode:
+                    item['qty'] += qty
+                else:
+                    item['qty'] = qty
                 return
         st.session_state.cart.append({**product, "qty": qty})
+
+def set_cart_qty(product, qty):
+    """Set the quantity of a product in cart (replaces existing qty)"""
+    if qty > 0:
+        for item in st.session_state.cart:
+            if item['id'] == product['id']:
+                item['qty'] = qty
+                return
+        st.session_state.cart.append({**product, "qty": qty})
+    else:
+        # If qty is 0, remove from cart
+        remove_from_cart(product['id'])
 
 def remove_from_cart(product_id):
     st.session_state.cart = [item for item in st.session_state.cart if item['id'] != product_id]
@@ -352,6 +370,7 @@ def place_order():
     }
     st.session_state.orders.insert(0, new_order)
     st.session_state.cart = []
+    st.session_state.cart_version += 1  # Reset number input widgets
     return status
 
 def navigate_to(page):
@@ -553,50 +572,22 @@ def dashboard_view():
             else:
                 st.warning("No matching items found in catalog.")
         
-        # Also show local product catalog for manual browsing
-        st.markdown("### Select Products")
-        
-        # Filter products based on search (local filtering)
-        filtered_products = PRODUCTS
-        if search_query and not search_clicked:
-            filtered_products = [p for p in PRODUCTS if search_query.lower() in p['name'].lower() or search_query.lower() in p['description'].lower()]
-        
-        # Display product cards
-        selected_product = None
-        for product in filtered_products:
-            with st.container(border=True):
-                col1, col2, col3 = st.columns([0.5, 2.5, 1])
-                
-                with col1:
-                    st.markdown(f"<div style='font-size: 2rem; text-align: center;'>{product.get('icon', '🔩')}</div>", unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown(f"**{product['name']}**")
-                    st.caption(product['description'])
-                    selected_product = product
-                
-                with col3:
-                    qty = st.number_input(
-                        "Qty",
-                        min_value=0,
-                        value=0,
-                        step=1,
-                        key=f"qty_{product['id']}",
-                        label_visibility="collapsed"
-                    )
-                    if qty > 0:
-                        add_to_cart(product, qty)
-                    st.caption("pcs")
+        # Show helpful message when no search yet
+        if not st.session_state.search_results:
+            st.markdown("---")
+            st.markdown("""
+            <div style="text-align: center; padding: 3rem 1rem; color: #64748B;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                <h3 style="color: #1E3A5F; margin-bottom: 0.5rem;">Search for materials</h3>
+                <p>Describe what you need and our AI will recommend the best products.</p>
+                <p style="font-size: 0.9rem; color: #94A3B8;">Try: "500 stainless screws M4×20 with washers"</p>
+            </div>
+            """, unsafe_allow_html=True)
     
     with summary_col:
         # Order Summary
         with st.container(border=True):
             render_order_summary()
-        
-        # Product Description (show first product or selected)
-        if filtered_products:
-            with st.container(border=True):
-                render_product_description(filtered_products[0])
 
 # --- 9. VOICE REQUEST VIEW (Create Request) ---
 def voice_request_view():

@@ -235,6 +235,37 @@ def match_and_price(result_json: dict, csv_path: str = 'backend/data/sample.csv'
 
     return {"total": total, "requireApproval": require_approval, "items": items_out}
 
+def clean_voice_transcript(raw_text: str) -> str:
+    """
+    Uses Claude to clean up raw voice-to-text input, removing filler words
+    and extracting the core intent.
+    """
+    api_key = secrets.get('API_KEY')
+    client = anthropic.Anthropic(api_key=api_key)
+
+    prompt = f"""You are a helpful assistant. Clean up this raw voice transcription for a construction procurement app. 
+    Remove filler words (um, uh, like), greetings, and politeness markers. 
+    Keep only the specific items, quantities, and descriptions needed for the order.
+    
+    Raw Input: "{raw_text}"
+    
+    RETURN: ONLY the cleaned text string. Do not add quotes."""
+
+    try:
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        # Extract text safely
+        if hasattr(message.content[0], 'text'):
+            cleaned_text = message.content[0].text.strip()
+        else:
+            cleaned_text = str(message.content[0]).strip()
+        return cleaned_text
+    except Exception as e:
+        print(f"Error cleaning text: {e}")
+        return raw_text
 
 # Example usage
 if __name__ == "__main__":

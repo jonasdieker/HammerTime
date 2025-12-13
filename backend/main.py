@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from backend.utils.request_agent import process_procurement_request
+from backend.utils.request_agent import process_procurement_request, clean_voice_transcript
 import csv
 
 app = FastAPI()
@@ -97,6 +97,14 @@ async def root():
     """Health check endpoint"""
     return {"message": "HammerTime API is running"}
 
+class CleanVoiceRequest(BaseModel):
+    text: str
+
+@app.post("/clean_voice_input")
+async def clean_voice_input(request: CleanVoiceRequest):
+    """Refines raw voice text using Claude"""
+    cleaned_text = clean_voice_transcript(request.text)
+    return {"cleaned": cleaned_text}
 
 if __name__ == "__main__":
     import uvicorn

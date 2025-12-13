@@ -3,6 +3,7 @@ import pandas as pd
 import random
 from datetime import datetime
 import requests
+import speech_recognition as sr
 
 # --- 1. CONFIGURATION & STYLING ---
 st.set_page_config(page_title="Procurement Assistant", layout="wide")
@@ -453,6 +454,41 @@ def render_product_description(product):
     </div>
     """, unsafe_allow_html=True)
 
+    if st.button("🎤 Start Voice Input", use_container_width=True):
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            with st.spinner("Listening... Speak now."):
+                try:
+                    # Adjust for ambient noise and listen
+                    r.adjust_for_ambient_noise(source, duration=0.5)
+                    audio = r.listen(source, timeout=5, phrase_time_limit=10)
+                    
+                    st.info("Processing audio...")
+                    
+                    # 1. Convert Audio to Text (using Google Speech Recognition)
+                    raw_text = r.recognize_google(audio)
+                    
+                    # 2. Send to Backend for AI Cleaning (Claude)
+                    response = requests.post(
+                        "http://localhost:8000/clean_voice_input",
+                        json={"text": raw_text}
+                    )
+                    
+                    if response.ok:
+                        cleaned = response.json().get("cleaned", raw_text)
+                        st.session_state.voice_text = cleaned
+                        st.success("Audio captured!")
+                        st.rerun()
+                    else:
+                        st.error("Backend failed to clean text")
+                        
+                except sr.WaitTimeoutError:
+                    st.warning("No speech detected. Try again.")
+                except sr.UnknownValueError:
+                    st.warning("Could not understand audio.")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
 # --- 8. DASHBOARD VIEW ---
 def dashboard_view():
     # Main content area with two columns
@@ -593,118 +629,64 @@ def dashboard_view():
 
 # --- 9. VOICE REQUEST VIEW (Create Request) ---
 def voice_request_view():
-    col1, col2 = st.columns([1.5, 1])
     
-    with col1:
-        # Voice Input Section
-        with st.container(border=True):
+    with st.container(border=True):
             st.markdown("""
             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                 <div style="background-color: #EFF6FF; border: 2px solid #2563EB; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
                     <span style="font-size: 1.25rem;">🎤</span>
                 </div>
                 <div style="background-color: #F8FAFC; border-radius: 8px; padding: 0.75rem 1rem; flex: 1;">
-                    <span style="color: #64748B;">Click microphone to speak...</span>
+                    <span style="color: #64748B;">Click start and speak clearly...</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
-            if st.button("🎤 Start Voice Input", use_container_width=True):
-                st.session_state.voice_text = "need 500 stainless screws M4×20 with washers"
-                st.rerun()
-        
-        # Create Request Text Input
-        with st.container(border=True):
-            st.markdown("### Create Request")
-            request_text = st.text_area(
-                "Request",
-                value=st.session_state.voice_text,
-                placeholder="need 500 stainless screws M4×20 with washers",
-                height=80,
-                label_visibility="collapsed"
-            )
-            
-            col_btn1, col_btn2 = st.columns(2)
-            with col_btn1:
-                if st.button("Submit Request", type="primary", use_container_width=True):
-                    if request_text:
-                        # Call backend API
-                        try:
-                            response = requests.post(
-                                "http://localhost:8000/receive_user_prompt",
-                                json={"prompt": request_text}
-                            )
-                            if response.ok:
-                                data = response.json()
-                                st.session_state.recommendation = {
-                                    "supplier": "Supplier B",
-                                    "items": data.get("items", []),
-                                    "explanation": data.get("explanation", ""),
-                                    "lead_time": "2 days",
-                                    "savings": "32%"
-                                }
-                                st.rerun()
-                        except Exception as e:
-                            st.error(f"Error: {e}")
-    
-    with col2:
-        # Recommendation Panel
-        with st.container(border=True):
-            st.markdown("### Recommendation")
-            
-            if st.session_state.recommendation:
-                rec = st.session_state.recommendation
-                st.markdown(f"**{rec.get('supplier', 'Supplier B')}**")
+            # UNIQUE KEY prevents the DuplicateId error
+            if st.button("🎤 Start Voice Input", key="voice_record_btn", use_container_width=True):
+                # 1. Setup Recognizer
+                r = sr.Recognizer()
+                r.energy_threshold = 300  # Same setting as your working test script
                 
-                # Display items
-                for item in rec.get('items', []):
-                    name = item.get('artikelname', item.get('name', 'Item'))
-                    qty = item.get('anzahl', item.get('qty', 0))
-                    price = item.get('preis_stk', item.get('price', 0)) * qty
-                    st.markdown(f"{qty} {name} - €{price:.2f}")
-                
-                st.markdown(f"*Lead time: {rec.get('lead_time', '2 days')}*")
-                st.markdown(f"<span style='background-color: #DCFCE7; color: #166534; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;'>{rec.get('savings', '32%')} less wastage</span>", unsafe_allow_html=True)
-                
-                st.markdown("")
-                col_a, col_m = st.columns(2)
-                with col_a:
-                    if st.button("Approve", type="primary", use_container_width=True):
-                        # Add items to cart
-                        for item in rec.get('items', []):
-                            product = {
-                                'id': item.get('artikel_id', item.get('id')),
-                                'name': item.get('artikelname', item.get('name')),
-                                'price': item.get('preis_stk', item.get('price', 0)),
-                                'qty': item.get('anzahl', item.get('qty', 0))
-                            }
-                            st.session_state.cart.append(product)
-                        st.session_state.recommendation = None
-                        navigate_to("Dashboard")
-                        st.rerun()
-                with col_m:
-                    if st.button("Modify", use_container_width=True):
-                        navigate_to("Dashboard")
-                        st.rerun()
-            else:
-                st.markdown("*Submit a request to get AI recommendations*")
-    
-    # Order Details Table
-    if st.session_state.recommendation and st.session_state.recommendation.get('items'):
-        st.markdown("### Order Details")
-        items = st.session_state.recommendation['items']
-        
-        table_data = []
-        for item in items:
-            table_data.append({
-                "Item": item.get('artikelname', item.get('name', '')),
-                "Description": item.get('kategorie', item.get('description', '')),
-                "Quantity": f"{item.get('anzahl', item.get('qty', 0))} pcs",
-                "Subtotal": f"€{item.get('preis_stk', item.get('price', 0)) * item.get('anzahl', item.get('qty', 0)):.2f}"
-            })
-        
-        df = pd.DataFrame(table_data)
-        st.dataframe(df, use_container_width=True, hide_index=True)
+                # 2. Capture Audio
+                try:
+                    with sr.Microphone() as source:
+                        with st.spinner("🤫 Calibrating background noise..."):
+                            r.adjust_for_ambient_noise(source, duration=1)
+                        
+                        with st.spinner("🎙️ Listening... Speak now!"):
+                            # Listen with a timeout so it doesn't hang forever
+                            audio = r.listen(source, timeout=5, phrase_time_limit=10)
+                            
+                        st.success("✅ Audio captured! Processing...")
+                        
+                        # 3. Google Speech to Text
+                        raw_text = r.recognize_google(audio)
+                        st.info(f"You said: '{raw_text}'")
+                        
+                        # 4. Send to Backend Agent
+                        with st.spinner("🤖 AI is cleaning up your text..."):
+                            try:
+                                response = requests.post(
+                                    "http://localhost:8000/clean_voice_input",
+                                    json={"text": raw_text}
+                                )
+                                if response.ok:
+                                    cleaned = response.json().get("cleaned", raw_text)
+                                    # Update the session state text
+                                    st.session_state.voice_text = cleaned
+                                    st.rerun() # Refresh page to show text in box
+                                else:
+                                    st.error(f"Backend Error: {response.status_code}")
+                            except Exception as e:
+                                st.error(f"Could not connect to backend: {e}")
+
+                except sr.WaitTimeoutError:
+                    st.warning("⚠️ No speech detected. Try speaking louder.")
+                except sr.UnknownValueError:
+                    st.warning("🤔 Could not understand audio. Try again.")
+                except Exception as e:
+                    st.error(f"Error: {e}")
 
 # --- 10. ORDERS VIEW ---
 def orders_view():

@@ -16,7 +16,6 @@ dependencies = [
   "fastapi",
   "uvicorn[standard]",
   "streamlit",
-  "csv",
 ]
 
 [project.optional-dependencies]

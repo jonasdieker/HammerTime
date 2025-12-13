@@ -212,7 +212,6 @@ def foreman_view():
                             "supplier": supplier
                         })
 
-                    
                     # Display recommendations
                     if recommendations:
                         # Add all button
@@ -269,27 +268,6 @@ def foreman_view():
 
     st.divider()
 
-    # --- Product Grid ---
-    st.subheader("Catalog")
-    
-    cols = st.columns(3)
-    for index, product in enumerate(PRODUCTS):
-        # Filter
-        if ai_query and ai_query.lower() not in product['name'].lower() and ai_query.lower() not in product['category'].lower():
-            continue
-
-        with cols[index % 3]:
-            with st.container(border=True):
-                st.markdown(f"**{product['name']}**")
-                st.caption(f"{product['category']} | {product['supplier']}")
-                st.markdown(f"### €{product['price']:.2f}")
-                
-                c_qty, c_btn = st.columns([1, 2])
-                with c_qty:
-                    qty = st.number_input("Qty", min_value=1, value=1, label_visibility="collapsed", key=f"qty_{product['id']}")
-                with c_btn:
-                    if st.button("Add to Cart", key=f"btn_{product['id']}", use_container_width=True):
-                        add_to_cart(product, qty)
 
 # --- 6. VIEW: PROCUREMENT ADMIN ---
 def procurement_view():

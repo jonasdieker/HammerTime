@@ -9,15 +9,17 @@ from components import render_chat_message, render_chat_history, render_order_su
 from utils import add_to_cart
 
 
-def send_message_to_chat(user_message: str):
-    """Send a message to the chat API and handle the response"""
-    # Add user message to chat history
+def add_user_message(user_message: str):
+    """Add user message to chat and set pending flag for AI response"""
     st.session_state.voice_chat_messages.append({
         "role": "user",
         "content": user_message
     })
-    
-    # Send to backend
+    st.session_state.voice_chat_pending = True
+
+
+def process_ai_response():
+    """Call the AI backend and process the response"""
     try:
         response = requests.post(
             f"{API_BASE_URL}/chat_request",
@@ -47,9 +49,17 @@ def send_message_to_chat(user_message: str):
                     "content": f"❌ Error: {result['content']}"
                 })
         else:
-            st.error(f"Backend Error: {response.status_code}")
+            st.session_state.voice_chat_messages.append({
+                "role": "assistant",
+                "content": f"❌ Backend Error: {response.status_code}"
+            })
     except Exception as e:
-        st.error(f"Could not connect to backend: {e}")
+        st.session_state.voice_chat_messages.append({
+            "role": "assistant",
+            "content": f"❌ Could not connect to backend: {e}"
+        })
+    
+    st.session_state.voice_chat_pending = False
 
 
 def voice_request_view():
@@ -69,6 +79,12 @@ def voice_request_view():
             if st.session_state.voice_chat_messages:
                 st.markdown("---")
                 render_chat_history()
+                
+                # Process pending AI response (shows user message first, then spinner)
+                if st.session_state.voice_chat_pending:
+                    with st.spinner("🤖 AI is searching the catalog..."):
+                        process_ai_response()
+                    st.rerun()
             else:
                 st.info("💡 Start by clicking the microphone button or typing your request below.")
         
@@ -93,8 +109,8 @@ def voice_request_view():
                         raw_text = r.recognize_google(audio)
                         st.toast(f"Heard: '{raw_text}'")
                         
-                        # Send to chat
-                        send_message_to_chat(raw_text)
+                        # Add message and trigger AI response
+                        add_user_message(raw_text)
                         st.rerun()
                         
                 except sr.WaitTimeoutError:
@@ -119,13 +135,14 @@ def voice_request_view():
         with col_send:
             if st.button("📤 Send", key="voice_chat_send", use_container_width=True):
                 if user_input and user_input.strip():
-                    send_message_to_chat(user_input.strip())
+                    add_user_message(user_input.strip())
                     st.rerun()
         
         with col_clear:
             if st.button("🗑️ Clear Chat", key="voice_chat_clear", use_container_width=True):
                 st.session_state.voice_chat_messages = []
                 st.session_state.voice_chat_recommendations = None
+                st.session_state.voice_chat_pending = False
                 st.rerun()
         
         # Show Recommendations if available

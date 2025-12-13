@@ -1,0 +1,101 @@
+artikel_id,artikelname,kategorie,einheit,preis_eur,lieferant,verbrauchsart,gefahrgut,lagerort,typische_baustelle
+C001,Schraube TX20 4x40,Befestigung,Stk,0.08,Würth,Einweg,false,Container A,Hochbau
+C002,Schraube TX20 5x60,Befestigung,Stk,0.12,Würth,Einweg,false,Container A,Hochbau
+C003,Schraube TX25 6x80,Befestigung,Stk,0.18,Würth,Einweg,false,Container A,Hochbau
+C004,Dübel 6mm,Kunststoff,Stk,0.10,Fischer,Einweg,false,Container A,Innenausbau
+C005,Dübel 8mm,Kunststoff,Stk,0.15,Fischer,Einweg,false,Container A,Innenausbau
+C006,Dübel 10mm,Kunststoff,Stk,0.22,Fischer,Einweg,false,Container A,Innenausbau
+C007,Unterlegscheibe M6,Befestigung,Stk,0.04,Reisser,Einweg,false,Container B,Stahlbau
+C008,Unterlegscheibe M8,Befestigung,Stk,0.05,Reisser,Einweg,false,Container B,Stahlbau
+C009,Mutter M8,Befestigung,Stk,0.07,Reisser,Einweg,false,Container B,Stahlbau
+C010,Mutter M10,Befestigung,Stk,0.09,Reisser,Einweg,false,Container B,Stahlbau
+C011,Nagel 60mm,Befestigung,Stk,0.03,Bauhaus,Einweg,false,Container C,Rohbau
+C012,Nagel 80mm,Befestigung,Stk,0.04,Bauhaus,Einweg,false,Container C,Rohbau
+C013,Kabelbinder 200mm,Elektro,Stk,0.06,HellermannTyton,Einweg,false,Container D,Elektro
+C014,Kabelbinder 300mm,Elektro,Stk,0.09,HellermannTyton,Einweg,false,Container D,Elektro
+C015,Isolierband schwarz,Elektro,Rolle,1.20,3M,Einweg,false,Container D,Elektro
+C016,Isolierband gelb-grün,Elektro,Rolle,1.30,3M,Einweg,false,Container D,Elektro
+C017,Installationsdraht 1.5mm,Elektro,m,0.45,Lapp,Einweg,false,Elektrolager,Elektro
+C018,Installationsdraht 2.5mm,Elektro,m,0.75,Lapp,Einweg,false,Elektrolager,Elektro
+C019,Arbeitshandschuhe Gr.9,PSA,Paar,2.50,Uvex,Einweg,false,PSA-Schrank,Alle
+C020,Arbeitshandschuhe Gr.10,PSA,Paar,2.50,Uvex,Einweg,false,PSA-Schrank,Alle
+C021,Schutzbrille klar,PSA,Stk,4.80,Uvex,Mehrweg,false,PSA-Schrank,Alle
+C022,Gehörschutzstöpsel,PSA,Paar,0.90,3M,Einweg,false,PSA-Schrank,Alle
+C023,Atemschutzmaske FFP2,PSA,Stk,1.80,Dräger,Einweg,false,PSA-Schrank,Innenausbau
+C024,Warnweste orange,PSA,Stk,4.00,Uvex,Mehrweg,false,PSA-Schrank,Tiefbau
+C025,Malervlies,Abdeckung,Rolle,18.00,Toom,Einweg,false,Lager West,Innenausbau
+C026,Abdeckfolie 4x5m,Abdeckung,Stk,3.50,Toom,Einweg,false,Lager West,Innenausbau
+C027,Panzertape silber,Klebeband,Rolle,6.90,Tesa,Einweg,false,Container C,Alle
+C028,Gewebeband schwarz,Klebeband,Rolle,5.50,Tesa,Einweg,false,Container C,Alle
+C029,Markierspray rot,Farbe,Dose,7.20,Soppec,Einweg,true,Farblager,Tiefbau
+C030,Markierspray blau,Farbe,Dose,7.20,Soppec,Einweg,true,Farblager,Tiefbau
+C031,Markierspray grün,Farbe,Dose,7.20,Soppec,Einweg,true,Farblager,Tiefbau
+C032,Bit TX20,Werkzeug,Stk,1.90,Bosch,Mehrweg,false,Werkzeugkiste,Alle
+C033,Bit TX25,Werkzeug,Stk,1.90,Bosch,Mehrweg,false,Werkzeugkiste,Alle
+C034,Bohrer 8mm,Werkzeug,Stk,4.50,Bosch,Mehrweg,false,Werkzeugkiste,Rohbau
+C035,Bohrer 10mm,Werkzeug,Stk,5.20,Bosch,Mehrweg,false,Werkzeugkiste,Rohbau
+C036,Schleifpapier 120,Konsum,Stk,0.60,Klingspor,Einweg,false,Container E,Innenausbau
+C037,Schleifpapier 240,Konsum,Stk,0.65,Klingspor,Einweg,false,Container E,Innenausbau
+C038,Baufolie schwarz,Abdichtung,Rolle,22.00,Obi,Einweg,false,Lager Süd,Tiefbau
+C039,Silikon transparent,Dichtstoffe,Stk,3.80,Soudal,Einweg,true,Container F,Innenausbau
+C040,Silikon weiß,Dichtstoffe,Stk,3.80,Soudal,Einweg,true,Container F,Innenausbau
+C041,Acryl weiß,Dichtstoffe,Stk,2.90,Soudal,Einweg,true,Container F,Innenausbau
+C042,PU-Schaum,Dichtstoffe,Dose,6.50,Illbruck,Einweg,true,Container F,Rohbau
+C043,Reinigungsalkohol,Chemie,Flasche,4.20,Weicon,Einweg,true,Chemieschrank,Alle
+C044,Putzeimer 20L,Behälter,Stk,5.90,Obi,Mehrweg,false,Lager Nord,Innenausbau
+C045,Maurerkelle,Handwerkzeug,Stk,11.50,Jung,Mehrweg,false,Werkzeuglager,Rohbau
+C046,Wasserwaage 60cm,Messwerkzeug,Stk,18.00,Stabila,Mehrweg,false,Werkzeuglager,Alle
+C047,Zollstock,Messwerkzeug,Stk,3.20,Stabila,Mehrweg,false,Werkzeuglager,Alle
+C048,Bleistift Baustelle,Schreibwaren,Stk,0.90,Stanley,Einweg,false,Bürocontainer,Alle
+C049,Baukreide rot,Markierung,Stk,1.10,Stanley,Einweg,false,Bürocontainer,Alle
+C050,Baukreide blau,Markierung,Stk,1.10,Stanley,Einweg,false,Bürocontainer,Alle
+C051,Besen groß,Reinigung,Stk,12.50,Vileda,Mehrweg,false,Lager Ost,Alle
+C052,Handfeger,Reinigung,Stk,3.40,Vileda,Mehrweg,false,Lager Ost,Alle
+C053,Müllsack 120L,Entsorgung,Stk,0.80,Deiss,Einweg,false,Lager Ost,Alle
+C054,Müllsack 240L,Entsorgung,Stk,1.40,Deiss,Einweg,false,Lager Ost,Alle
+C055,Putztuch Rolle,Reinigung,Rolle,6.20,Tork,Einweg,false,Lager Ost,Alle
+C056,Baustellenlampe LED,Elektro,Stk,29.00,Brennenstuhl,Mehrweg,false,Elektrolager,Alle
+C057,Verlängerungskabel 10m,Elektro,Stk,24.00,Brennenstuhl,Mehrweg,false,Elektrolager,Alle
+C058,Verlängerungskabel 20m,Elektro,Stk,38.00,Brennenstuhl,Mehrweg,false,Elektrolager,Alle
+C059,Mehrfachsteckdose,Elektro,Stk,14.50,Brennenstuhl,Mehrweg,false,Elektrolager,Alle
+C060,Kabeltrommel,Elektro,Stk,59.00,Brennenstuhl,Mehrweg,false,Elektrolager,Alle
+C061,Baueimer 10L,Behälter,Stk,3.20,Obi,Mehrweg,false,Lager Nord,Alle
+C062,Spachtel 50mm,Handwerkzeug,Stk,2.80,Stanley,Mehrweg,false,Werkzeuglager,Innenausbau
+C063,Spachtel 100mm,Handwerkzeug,Stk,3.60,Stanley,Mehrweg,false,Werkzeuglager,Innenausbau
+C064,Mischstab Farbe,Handwerkzeug,Stk,1.90,Collomix,Mehrweg,false,Werkzeuglager,Innenausbau
+C065,Farbroller klein,Malerbedarf,Stk,4.20,Storch,Einweg,false,Lager West,Innenausbau
+C066,Farbroller groß,Malerbedarf,Stk,6.80,Storch,Einweg,false,Lager West,Innenausbau
+C067,Pinsel 50mm,Malerbedarf,Stk,3.10,Storch,Einweg,false,Lager West,Innenausbau
+C068,Pinsel 70mm,Malerbedarf,Stk,4.40,Storch,Einweg,false,Lager West,Innenausbau
+C069,Farbe weiß 10L,Farbe,Eimer,38.00,Caparol,Einweg,true,Farblager,Innenausbau
+C070,Farbe grau 10L,Farbe,Eimer,41.00,Caparol,Einweg,true,Farblager,Innenausbau
+C071,Betontrennscheibe,Werkzeug,Stk,12.50,Bosch,Einweg,false,Werkzeuglager,Rohbau
+C072,Flexscheibe Metall,Werkzeug,Stk,3.80,Bosch,Einweg,false,Werkzeuglager,Stahlbau
+C073,Bauhelm weiß,PSA,Stk,14.00,Uvex,Mehrweg,false,PSA-Schrank,Alle
+C074,Bauhelm gelb,PSA,Stk,14.00,Uvex,Mehrweg,false,PSA-Schrank,Alle
+C075,Kniepolster,PSA,Paar,18.50,Uvex,Mehrweg,false,PSA-Schrank,Innenausbau
+C076,Montageschaum Reiniger,Chemie,Dose,5.40,Illbruck,Einweg,true,Chemieschrank,Rohbau
+C077,WD-40 Spray,Chemie,Dose,6.90,WD-40,Einweg,true,Chemieschrank,Alle
+C078,Rostlöser,Chemie,Dose,5.80,Caramba,Einweg,true,Chemieschrank,Stahlbau
+C079,Schmierfett,Chemie,Tub,4.60,Weicon,Einweg,true,Chemieschrank,Alle
+C080,Baustellenmarker schwarz,Schreibwaren,Stk,1.60,Edding,Einweg,false,Bürocontainer,Alle
+C081,Baustellenmarker rot,Schreibwaren,Stk,1.60,Edding,Einweg,false,Bürocontainer,Alle
+C082,Baustellenmarker blau,Schreibwaren,Stk,1.60,Edding,Einweg,false,Bürocontainer,Alle
+C083,Planenhaken,Kleinmaterial,Stk,0.70,Obi,Einweg,false,Container C,Alle
+C084,Spanngurt 5m,Transport,Stk,8.50,Würth,Mehrweg,false,Lager Süd,Alle
+C085,Spanngurt 10m,Transport,Stk,12.90,Würth,Mehrweg,false,Lager Süd,Alle
+C086,Palettenfolie,Verpackung,Rolle,9.80,Obi,Einweg,false,Lager Süd,Alle
+C087,Kantenschutz,Verpackung,Stk,1.20,Obi,Einweg,false,Lager Süd,Alle
+C088,Baustellenbesen Industrie,Reinigung,Stk,18.00,Vileda,Mehrweg,false,Lager Ost,Alle
+C089,Kehrschaufel,Reinigung,Stk,4.20,Vileda,Mehrweg,false,Lager Ost,Alle
+C090,Putzeimer 30L,Behälter,Stk,7.40,Obi,Mehrweg,false,Lager Nord,Innenausbau
+C091,Abstandskeile,Kleinmaterial,Stk,0.25,Wolfcraft,Einweg,false,Container A,Innenausbau
+C092,Fliesenkreuze 3mm,Kleinmaterial,Stk,0.12,Wolfcraft,Einweg,false,Container A,Innenausbau
+C093,Fliesenkreuze 5mm,Kleinmaterial,Stk,0.14,Wolfcraft,Einweg,false,Container A,Innenausbau
+C094,Gummihammer,Handwerkzeug,Stk,9.80,Stanley,Mehrweg,false,Werkzeuglager,Innenausbau
+C095,Richtlatte 2m,Messwerkzeug,Stk,22.00,Stabila,Mehrweg,false,Werkzeuglager,Rohbau
+C096,Baustellenlineal 1m,Messwerkzeug,Stk,6.40,Stabila,Mehrweg,false,Werkzeuglager,Alle
+C097,Staubmaske einfach,PSA,Stk,0.60,3M,Einweg,false,PSA-Schrank,Alle
+C098,Handschuh Latex,PSA,Paar,0.40,Ansell,Einweg,false,PSA-Schrank,Alle
+C099,Putztuch Einweg,Reinigung,Stk,0.15,Tork,Einweg,false,Lager Ost,Alle
+C100,Montagekeil Kunststoff,Kleinmaterial,Stk,0.55,Wolfcraft,Einweg,false,Container A,Innenausbau

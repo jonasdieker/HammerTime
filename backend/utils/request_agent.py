@@ -267,6 +267,119 @@ def clean_voice_transcript(raw_text: str) -> str:
         print(f"Error cleaning text: {e}")
         return raw_text
 
+
+def chat_procurement_request(messages: list, c_materials_data: list) -> dict:
+    """
+    Process a conversational procurement request. AI will either ask clarifying 
+    questions or return final recommendations.
+    
+    Args:
+        messages: List of {"role": "user"|"assistant", "content": "..."} 
+        c_materials_data: List of available C-materials (JSON data)
+    
+    Returns:
+        dict with either:
+        - {"type": "question", "content": "clarifying question text"}
+        - {"type": "recommendations", "content": {...materials data...}}
+    """
+    api_key = secrets.get('API_KEY')
+    client = anthropic.Anthropic(api_key=api_key)
+    
+    materials_json = json.dumps(c_materials_data, ensure_ascii=False, indent=2)
+    
+    system_prompt = f"""You are a helpful construction procurement assistant. Your job is to help workers order the right materials.
+
+Here is the available C-materials catalog:
+{materials_json}
+
+WORKFLOW:
+1. When a user requests materials, check if the request is specific enough
+2. If the request is ambiguous (e.g. "screws" without size, "gloves" without size), ask ONE brief clarifying question
+3. If the request is clear enough, provide the final material recommendations
+
+RULES FOR CLARIFYING QUESTIONS:
+- Ask only ONE question at a time
+- Keep questions short and specific (e.g., "What screw size: M4x20 or M4x25?")
+- Don't ask unnecessary questions if the catalog only has one option
+- After 2 clarifying exchanges, just make a reasonable choice
+
+RESPONSE FORMAT:
+If asking a question, respond with ONLY:
+QUESTION: <your brief question>
+
+If ready to recommend, respond with ONLY a JSON object:
+{{
+    "materials": [
+        ["artikel_id", quantity],
+        ...
+    ],
+    "explanation": "Brief explanation"
+}}
+
+Remember: Be conversational but efficient. Construction workers are busy!"""
+
+    # Build messages for Claude
+    claude_messages = []
+    for msg in messages:
+        claude_messages.append({
+            "role": msg["role"],
+            "content": msg["content"]
+        })
+    
+    try:
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=2000,
+            system=system_prompt,
+            messages=claude_messages
+        )
+        
+        response_text = response.content[0].text.strip()
+        print(f"Chat response: {response_text}")
+        
+        # Check if it's a question
+        if response_text.upper().startswith("QUESTION:"):
+            question = response_text[9:].strip()
+            return {"type": "question", "content": question}
+        
+        # Try to parse as JSON (final recommendations)
+        try:
+            # Extract JSON from response
+            json_text = response_text
+            if "```json" in json_text:
+                start = json_text.find("```json") + 7
+                end = json_text.find("```", start)
+                json_text = json_text[start:end].strip()
+            elif "```" in json_text:
+                start = json_text.find("```") + 3
+                end = json_text.find("```", start)
+                json_text = json_text[start:end].strip()
+            elif "{" in json_text:
+                first = json_text.find("{")
+                last = json_text.rfind("}")
+                if first != -1 and last != -1:
+                    json_text = json_text[first:last+1]
+            
+            result = json.loads(json_text)
+            
+            # Enrich with pricing
+            detailed = match_and_price(result, catalog=c_materials_data, approval_threshold=500.0)
+            detailed_output = {
+                'explanation': result.get('explanation', ''),
+                **detailed,
+            }
+            
+            return {"type": "recommendations", "content": detailed_output}
+            
+        except json.JSONDecodeError:
+            # If it's not valid JSON, treat it as a question/response
+            return {"type": "question", "content": response_text}
+            
+    except Exception as e:
+        print(f"Error in chat: {e}")
+        return {"type": "error", "content": str(e)}
+
+
 # Example usage
 if __name__ == "__main__":
     # Load your C-materials catalog (CSV -> list[dict])

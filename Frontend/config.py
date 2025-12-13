@@ -45,4 +45,9 @@ def init_session_state():
         st.session_state.last_search_query = ""
     if 'cart_version' not in st.session_state:
         st.session_state.cart_version = 0
+    # Voice Chat Flow state
+    if 'voice_chat_messages' not in st.session_state:
+        st.session_state.voice_chat_messages = []  # List of {"role": "user"|"assistant", "content": "..."}
+    if 'voice_chat_recommendations' not in st.session_state:
+        st.session_state.voice_chat_recommendations = None  # Final recommendations from AI
 

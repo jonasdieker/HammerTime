@@ -1,4 +1,1 @@
-# HammerTime
-
-
-TUM.ai X Anthropic
+# Here are your Instructions

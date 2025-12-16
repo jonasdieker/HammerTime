@@ -1,8 +1,0 @@
-README.md
-pyproject.toml
-backend/main.py
-comstruct_agentic_app.egg-info/PKG-INFO
-comstruct_agentic_app.egg-info/SOURCES.txt
-comstruct_agentic_app.egg-info/dependency_links.txt
-comstruct_agentic_app.egg-info/requires.txt
-comstruct_agentic_app.egg-info/top_level.txt
